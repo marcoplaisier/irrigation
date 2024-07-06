@@ -15,15 +15,19 @@ class IrrigationMQTTClient:
 
     async def _messages(self):  # Respond to incoming messages
         async for topic, msg, retained in self.mqtt_client.queue:
+            print(msg)
             if topic.startswith('homeassistant/valve/irrigation/'):
                 try:
                     command = json.loads(msg)
                 except ValueError:
                     command = msg.decode('UTF-8')
+                print(command)
                 if command == 'OPEN':
-                    await self.valve_controller.open()
+                    print('opening valve')
+                    asyncio.create_task(self.valve_controller.open())
                 elif command == 'CLOSE':
-                    await self.valve_controller.close()
+                    print('closing valve')
+                    asyncio.create_task(self.valve_controller.close())
 
     async def _register(self):
         await self.mqtt_client.subscribe('homeassistant/valve/irrigation/#')
@@ -60,9 +64,11 @@ class IrrigationMQTTClient:
 
     async def start(self):
         await self.mqtt_client.connect()
-
+        print('Done connecting')
         for coroutine in (self._up, self._messages):
             asyncio.create_task(coroutine())
+        while True:
+            await asyncio.sleep(5)
 
     async def stop(self):
         await self.mqtt_client.close()
@@ -124,3 +130,4 @@ if __name__ == '__main__':
     publish_state = publish_cb(client, "homeassistant/sensor/living-room/state")
     p = Process(target=start_measurements, args=(publish_state, ))
     p.start()"""
+
