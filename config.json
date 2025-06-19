@@ -1,0 +1,12 @@
+{
+    "sensor": {
+        "pin": 3,
+        "debounce_ms": 50
+    },
+    "mqtt": {
+        "broker": "homeassistant.local",
+        "port": 1883,
+        "topic": "irrigation/water_meter",
+        "client_id": "pico_water_meter"
+    }
+}
