@@ -2,6 +2,7 @@ import machine
 import time
 import json
 import ubinascii
+import sys
 from umqtt.simple import MQTTClient
 
 class WaterMeterDetector:
@@ -18,23 +19,16 @@ class WaterMeterDetector:
         try:
             with open(filename, 'r') as f:
                 return json.load(f)
+        except OSError:
+            print(f"ERROR: Configuration file '{filename}' not found!")
+            print("Please create a config.json file with sensor and MQTT settings.")
+            sys.exit(1)
+        except ValueError as e:
+            print(f"ERROR: Invalid JSON in configuration file: {e}")
+            sys.exit(1)
         except Exception as e:
-            print(f"Error loading config: {e}")
-            return self._default_config()
-    
-    def _default_config(self):
-        return {
-            "sensor": {
-                "pin": 3,
-                "debounce_ms": 50
-            },
-            "mqtt": {
-                "broker": "homeassistant.local",
-                "port": 1883,
-                "topic": "irrigation/water_meter",
-                "client_id": "pico_water_meter"
-            }
-        }
+            print(f"ERROR: Failed to load configuration: {e}")
+            sys.exit(1)
     
     def _setup_mqtt(self):
         try:
