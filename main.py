@@ -4,6 +4,7 @@ import json
 import ubinascii
 import sys
 from umqtt.simple import MQTTClient
+from wifi_connection import connect_wifi
 
 class WaterMeterDetector:
     def __init__(self, config_file="config.json"):
@@ -33,13 +34,24 @@ class WaterMeterDetector:
     def _setup_mqtt(self):
         try:
             client_id = ubinascii.hexlify(machine.unique_id())
+            print(f"Connecting to MQTT broker: {self.config['mqtt']['broker']}:{self.config['mqtt']['port']}")
+            print(f"Using client ID: {client_id}")
+            print(f"Using username: {self.config['mqtt']['user']}")
+            
             self.mqtt_client = MQTTClient(
                 client_id,
                 self.config["mqtt"]["broker"],
-                port=self.config["mqtt"]["port"]
+                port=self.config["mqtt"]["port"],
+                user=self.config["mqtt"]["user"],
+                password=self.config["mqtt"]["password"],
             )
             self.mqtt_client.connect()
-            print("MQTT connected")
+            print("MQTT connected successfully")
+        except OSError as e:
+            print(f"MQTT connection failed - Network error: {e}")
+            if e.args[0] == -2:
+                print("Error -2: Check broker address, port, and network connectivity")
+            self.mqtt_client = None
         except Exception as e:
             print(f"MQTT connection failed: {e}")
             self.mqtt_client = None
@@ -76,5 +88,9 @@ class WaterMeterDetector:
             time.sleep_ms(10)
 
 if __name__ == "__main__":
-    detector = WaterMeterDetector()
-    detector.monitor()
+    if connect_wifi():
+        detector = WaterMeterDetector()
+        detector.monitor()
+    else:
+        print("Cannot start without WiFi connection")
+        sys.exit(1)
