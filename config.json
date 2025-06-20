@@ -1,0 +1,18 @@
+{
+    "wifi": {
+        "ssid": "your_wifi_network_name",
+        "password": "your_wifi_password"
+    },
+    "sensor": {
+        "pin": 3,
+        "debounce_ms": 50
+    },
+    "mqtt": {
+        "broker": "192.168.1.100",
+        "port": 1883,
+        "topic": "irrigation/water_meter",
+        "client_id": "pico_water_meter",
+        "user": "your_mqtt_username",
+        "password": "your_mqtt_password"
+    }
+}
