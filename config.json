@@ -24,6 +24,7 @@
             "name": "Water Usage",
             "device_class": "water",
             "unit_of_measurement": "L",
+            "state_class": "total",
             "device_info": {
                 "identifiers": ["water_meter_001"],
                 "name": "Water Meter",

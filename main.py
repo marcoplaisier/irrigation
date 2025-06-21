@@ -95,7 +95,8 @@ class WaterMeterDetector:
                     "device_class": ha_config["device"]["device_class"],
                     "state_topic": ha_config["state_topic"],
                     "command_topic": ha_config["command_topic"],
-                    "unit_of_measurement": ha_config["device"]["unit_of_measurement"],                    
+                    "unit_of_measurement": ha_config["device"]["unit_of_measurement"],
+                    "state_class": ha_config["device"]["state_class"],
                     "unique_id": ha_config["device"]["unique_id"],
                     "availability_topic": ha_config["availability_topic"],
                     "device": ha_config["device"]["device_info"]
