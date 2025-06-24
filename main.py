@@ -44,6 +44,10 @@ class WaterMeterDetector:
         self.last_state = self.sensor_pin.value()
         self.last_trigger_time = 0
         self.debounce_time = self.config["sensor"]["debounce_ms"]
+        self.min_pulse_width = self.config["sensor"].get("min_pulse_width_ms", 10)
+        self.max_pulse_width = self.config["sensor"].get("max_pulse_width_ms", 2000)
+        self.state_change_time = 0
+        self.expecting_high = False
         self.cumulative_usage = self._load_cumulative_usage()
         self.mqtt_client = None
         self.start_time = time.time()
@@ -342,6 +346,36 @@ class WaterMeterDetector:
             self._send_water_usage()
             self.last_attributes_update = current_time
     
+    def _validate_state_change(self, new_state, current_time):
+        """Validate that state change is not too rapid (basic debouncing)"""
+        # Simple time-based debouncing for state changes
+        if hasattr(self, 'last_state_change_time'):
+            time_diff = time.ticks_diff(current_time, self.last_state_change_time)
+            if time_diff < 5:  # 5ms minimum between state changes
+                self.logger.debug(f"State change too rapid: {time_diff}ms")
+                return False
+        
+        self.last_state_change_time = current_time
+        return True
+    
+    def _validate_pulse_width(self, current_time):
+        """Validate that pulse width is within acceptable range"""
+        if not hasattr(self, 'state_change_time'):
+            return False
+            
+        pulse_width = time.ticks_diff(current_time, self.state_change_time)
+        
+        if pulse_width < self.min_pulse_width:
+            self.logger.debug(f"Pulse too short: {pulse_width}ms < {self.min_pulse_width}ms")
+            return False
+            
+        if pulse_width > self.max_pulse_width:
+            self.logger.debug(f"Pulse too long: {pulse_width}ms > {self.max_pulse_width}ms")
+            return False
+            
+        self.logger.debug(f"Valid pulse width: {pulse_width}ms")
+        return True
+    
     def monitor(self):
         self.logger.info("Water meter detector started")
         while True:
@@ -349,12 +383,24 @@ class WaterMeterDetector:
             current_time = time.ticks_ms()
             
             if current_state != self.last_state:
-                if current_state == 0 and time.ticks_diff(current_time, self.last_trigger_time) > self.debounce_time:
-                    self.cumulative_usage += 1.0
-                    self._save_cumulative_usage()
-                    self.logger.info(f"Water meter rotation detected - Total: {self.cumulative_usage}L")
-                    self._send_water_usage()
-                    self.last_trigger_time = current_time
+                if self._validate_state_change(current_state, current_time):
+                    if current_state == 0:
+                        # Falling edge - start of pulse
+                        self.state_change_time = current_time
+                        self.expecting_high = True
+                        self.logger.debug("Pulse started")
+                    else:
+                        # Rising edge - end of pulse
+                        if self.expecting_high and self._validate_pulse_width(current_time):
+                            # Valid rotation detected
+                            if time.ticks_diff(current_time, self.last_trigger_time) > self.debounce_time:
+                                self.cumulative_usage += 1.0
+                                self._save_cumulative_usage()
+                                self.logger.info(f"Water meter rotation detected - Total: {self.cumulative_usage}L")
+                                self._send_water_usage()
+                                self.last_trigger_time = current_time
+                                self.logger.debug("Valid rotation confirmed")
+                        self.expecting_high = False
                 
                 self.last_state = current_state
             
