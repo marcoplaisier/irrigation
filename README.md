@@ -12,15 +12,42 @@ See [WIRING.md](WIRING.md) for complete hardware wiring instructions.
 
 ```json
 {
+    "wifi": {
+        "ssid": "your_wifi_network_name",
+        "password": "your_wifi_password"
+    },
     "sensor": {
         "pin": 3,
         "debounce_ms": 50
     },
     "mqtt": {
-        "broker": "your-homeassistant-ip",
+        "broker": "192.168.1.100",
         "port": 1883,
-        "topic": "irrigation/water_meter",
-        "client_id": "pico_water_meter"
+        "client_id": "pico_water_meter",
+        "user": "your_mqtt_username",
+        "password": "your_mqtt_password"
+    },
+    "homeassistant": {
+        "discovery_topic": "homeassistant/sensor/water_meter/config",
+        "state_topic": "homeassistant/sensor/water_meter/state",
+        "json_attributes_topic": "homeassistant/sensor/water_meter/attributes",
+        "command_topic": "homeassistant/sensor/water_meter/set",
+        "availability_topic": "homeassistant/sensor/water_meter/availability",
+        "heartbeat_topic": "homeassistant/sensor/water_meter/heartbeat",
+        "diagnostic_topic": "homeassistant/sensor/water_meter/diagnostic",
+        "diagnostic_response_topic": "homeassistant/sensor/water_meter/diagnostic_response",
+        "device": {
+            "unique_id": "water_meter_001",
+            "name": "Water Usage",
+            "device_class": "water",
+            "unit_of_measurement": "L",
+            "device_info": {
+                "identifiers": ["water_meter_001"],
+                "name": "Water Meter",
+                "model": "Generic Water Counter",
+                "manufacturer": "DIY"
+            }
+        }
     }
 }
 ```
