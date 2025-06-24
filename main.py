@@ -84,7 +84,8 @@ class WaterMeterDetector:
                 self.config["mqtt"]["broker"],
                 port=self.config["mqtt"]["port"],
                 user=self.config["mqtt"]["user"],
-                password=self.config["mqtt"]["password"]
+                password=self.config["mqtt"]["password"],
+                keepalive=self.config["mqtt"].get("keep_alive_seconds", 60)
             )
             
             # Set last will message before connecting
@@ -121,7 +122,7 @@ class WaterMeterDetector:
         if self.mqtt_client:
             try:
                 availability_topic = self.config["homeassistant"]["availability_topic"]
-                self.mqtt_client.publish(availability_topic, "online")
+                self.mqtt_client.publish(availability_topic, "online", retain=True)
                 self.logger.info("Birth message sent")
             except Exception as e:
                 self.logger.error(f"Birth message failed: {e}")
@@ -196,8 +197,8 @@ class WaterMeterDetector:
                 state_topic = self.config["homeassistant"]["state_topic"]
                 json_attributes_topic = self.config["homeassistant"]["json_attributes_topic"]
                 
-                # Send state value
-                self.mqtt_client.publish(state_topic, str(self.cumulative_usage))
+                # Send state value with retain flag
+                self.mqtt_client.publish(state_topic, str(self.cumulative_usage), retain=True)
                 
                 # Gather diagnostic data for attributes
                 wifi_rssi = self._get_wifi_signal_strength()
@@ -221,8 +222,8 @@ class WaterMeterDetector:
                     "sensor_debounce_ms": self.config["sensor"]["debounce_ms"]
                 }
                 
-                # Send attributes
-                self.mqtt_client.publish(json_attributes_topic, json.dumps(attributes_data))
+                # Send attributes with retain flag
+                self.mqtt_client.publish(json_attributes_topic, json.dumps(attributes_data), retain=True)
                 
                 self.logger.debug(f"Water usage and attributes sent: {self.cumulative_usage}L")
                 self.mqtt_reconnect_attempts = 0  # Reset on successful publish

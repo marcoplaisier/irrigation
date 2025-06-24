@@ -25,7 +25,8 @@ See [WIRING.md](WIRING.md) for complete hardware wiring instructions.
         "port": 1883,
         "client_id": "pico_water_meter",
         "user": "your_mqtt_username",
-        "password": "your_mqtt_password"
+        "password": "your_mqtt_password",
+        "keep_alive_seconds": 30
     },
     "homeassistant": {
         "discovery_topic": "homeassistant/sensor/water_meter/config",
