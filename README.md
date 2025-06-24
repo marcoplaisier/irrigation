@@ -18,7 +18,9 @@ See [WIRING.md](WIRING.md) for complete hardware wiring instructions.
     },
     "sensor": {
         "pin": 3,
-        "debounce_ms": 50
+        "debounce_ms": 50,
+        "min_pulse_width_ms": 10,
+        "max_pulse_width_ms": 2000
     },
     "mqtt": {
         "broker": "192.168.1.100",
