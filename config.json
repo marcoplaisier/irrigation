@@ -8,7 +8,8 @@
         "port": 1883,
         "client_id": "pico_water_meter",
         "user": "your_mqtt_username",
-        "password": "your_mqtt_password"
+        "password": "your_mqtt_password",
+        "keep_alive_seconds": 30
     },
     "sensor": {
         "pin": 3,
